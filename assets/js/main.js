@@ -7,8 +7,8 @@
 
     PLAYER_SPEED = 2;
 
-    currentLevel = 1;
-    currentWave = 1;
+    var currentLevel = 1;
+    var currentWave = 1;
 
     var game = new Phaser.Game(800, 450, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
@@ -32,6 +32,7 @@
     function preload()
     {
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
+       game.load.image('floor', 'assets/img/floor.png', 0, 0);
        game.load.image('player', 'assets/img/player.png', 0, 0);
        game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
     }
@@ -41,25 +42,18 @@
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         background = createBackground();
-
+        platforms = createPlatforms();
         player = createPlayer();
-
         bullet = createBullet();
 
         enemies = game.add.group();
         enemies.enableBody = true;
         enemies.physicsBodyType = Phaser.Physics.ARCADE;
         createEnemies(1)
-        
-
-        platforms = game.add.group();
-        platforms.enableBody = true;
     }
 
     function update()
     {
-        checkInput();
-
         if (allChildrenAreDead(enemies))
         {
             incrementWavesAndLevels();
@@ -70,18 +64,26 @@
         moveBullet();
         checkIfBulletHasHitEnemy();
         checkIfEnemyHasHitPlayer();
-            
-    }
+        game.physics.arcade.collide(platforms, player);
+        game.physics.arcade.collide(platforms, enemies);
 
-    function getLastChar()
-    {
-        return game.input.keyboard.lasChar
+        checkInput();
     }
 
     function checkInput()
     {
-        if (inputStates.hasOwnProperty(getLastChar()))
-            return inputStates[getLastChar()]();
+        for (i = 0; i < game.input.keyboard._keys.length; i++)
+        {
+            keyCode = getKeyCodeFromKey(game.input.keyboard._keys[i])
+            if (inputStates.hasOwnProperty(keyCode))
+                return inputStates[keyCode]();
+        }
+    }
+
+    function getKeyCodeFromKey(key)
+    {
+        if (key != undefined && key.hasOwnProperty('keyCode') && key.isDown)
+            return key.keyCode
     }
 
     function movePlayerForward(speed)
@@ -114,9 +116,23 @@
         return background;
     }
 
+    function createPlatforms()
+    {
+        platform = game.add.group();
+        platform.enableBody = true;
+
+        floorPlatform = platform.create(0, 0, 'floor');
+        floorPlatform.y = HEIGHT - floorPlatform.height
+        //floorPlatform.y = 100;
+        floorPlatform.width = WIDTH;
+        floorPlatform.body.immovable = true;
+
+        return platform;
+    }
+
     function createPlayer()
     {
-        player = game.add.sprite(20, 450, 'player');
+        player = game.add.sprite(0, 0, 'player');
         game.physics.arcade.enable(player);
         player.anchor.setTo(.5, 1);
         player.body.bounce.y = 0.2;
@@ -194,9 +210,12 @@
         
     }
 
-    function getRandomVal(val)
+    function getRandomVal(max, min)
     {
-        return Math.floor((Math.random() * val) + 0);
+        if (min == undefined)
+            min = 70;
+
+        return Math.floor((Math.random() * max) + min);
     }
 
     function createBullet()
@@ -210,6 +229,8 @@
         bullet.events.onOutOfBounds.add(function(bullet){ 
             bullet.kill() 
         }, this );
+
+        setBulletPosition()
 
         return bullet;
     }
@@ -249,7 +270,7 @@
     {
         // base on direction, do we place front of back of sprite
         bullet.body.x = player.body.x;
-        bullet.body.y = player.body.y + 15;
+        bullet.body.y = player.body.y;
     }
 
     /***
@@ -331,7 +352,6 @@
                 playerHit(enemy, player)
             });
         }
-
     }
 
     function playerHit(enemy, player)

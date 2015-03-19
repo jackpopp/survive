@@ -123,9 +123,23 @@
 
         floorPlatform = platform.create(0, 0, 'floor');
         floorPlatform.y = HEIGHT - floorPlatform.height
-        //floorPlatform.y = 100;
         floorPlatform.width = WIDTH;
         floorPlatform.body.immovable = true;
+
+        platformOne = platform.create(50, 0, 'floor');
+        platformOne.y = 300;
+        platformOne.width = WIDTH/3;
+        platformOne.body.immovable = true; 
+
+        platformTwo = platform.create(300, 0, 'floor');
+        platformTwo.y = 200
+        platformTwo.width = WIDTH/3;
+        platformTwo.body.immovable = true;
+
+        platformThree = platform.create(500, 0, 'floor');
+        platformThree.y = 150
+        platformThree.width = WIDTH/3;
+        platformThree.body.immovable = true;
 
         return platform;
     }
@@ -200,7 +214,7 @@
     {
         for (i = 0; i < amount; i++)
         {
-            e = enemies.create(getRandomVal(WIDTH), getRandomVal(HEIGHT), 'player')
+            e = enemies.create(getRandomVal(WIDTH), 0, 'player')
             e.anchor.setTo(.5, 1);
             e.body.bounce.y = 0.2;
             e.body.gravity.y = 300;
@@ -222,8 +236,7 @@
     {
         bullet = game.add.sprite(0, 0, 'bullet');
         game.physics.arcade.enable(bullet);
-        bullet.anchor.setTo(.5, 1);
-        bullet.kill();
+        //bullet.anchor.setTo(0.5, 1);
         bullet.checkWorldBounds = true;
 
         bullet.events.onOutOfBounds.add(function(bullet){ 
@@ -232,6 +245,7 @@
 
         setBulletPosition()
 
+        bullet.kill();
         return bullet;
     }
 
@@ -335,7 +349,7 @@
         {
             enemy = enemies.children[i]
 
-            game.physics.arcade.overlap(enemy, bullet, function(){
+            game.physics.arcade.overlap(bullet, enemy, function(){
                 enemyHit(enemy, bullet)
             });
         }

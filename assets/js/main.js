@@ -4,6 +4,7 @@
     MAX_LEVEL = 10;
     WIDTH = 800;
     HEIGHT = 450;
+    BULLET_DAMAGE = 1;
 
     PLAYER_SPEED = 2;
 
@@ -69,10 +70,11 @@
 
         game.input.keyboard.onDownCallback = function()
         {
-            console.log('down')
             if (game.input.keyboard.lastKey.keyCode == 38)
                 playSound('jump');
         }
+
+        renderGameInfo();
     }
 
     function update()
@@ -199,7 +201,12 @@
             createEnemies(currentLevel);
         }
 
-        document.getElementById('level').innerHTML = currentLevel;
+        renderGameInfo()
+    }
+
+    function renderGameInfo()
+    {
+        document.getElementById('level').innerHTML = currentLevel+"/"+MAX_LEVEL;
         document.getElementById('wave').innerHTML = currentWave;
     }
 
@@ -416,10 +423,23 @@
 
     function enemyHit(enemy, bullet)
     {
-        enemy.destroy();
-        bullet.kill();
-        incrementWavesAndLevels();
-        playSound('explosion');
+        // take off health
+        // if health less than or equal to 0, destroy
+
+        if ( ! bullet.hasCollided )
+        {
+            damage = BULLET_DAMAGE/currentWave;
+            enemy.health = (enemy.health - damage).toFixed(2);
+            playSound('explosion');
+            bullet.kill();
+
+            // bit of a hack here because of js float point being weird
+            if ( (enemy.health - 0.01) <= 0)
+            {
+                enemy.destroy();
+                incrementWavesAndLevels();
+            }
+        }
     }
 
     function playSound(key)

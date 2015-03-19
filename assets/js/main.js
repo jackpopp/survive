@@ -127,20 +127,21 @@
         floorPlatform.width = WIDTH;
         floorPlatform.body.immovable = true;
 
-        platformOne = platform.create(50, 0, 'floor');
-        platformOne.y = 300;
-        platformOne.width = WIDTH/3;
+        platformOne = platform.create(50, 150, 'floor');
+        platformOne.width = WIDTH/4;
         platformOne.body.immovable = true; 
 
-        platformTwo = platform.create(300, 0, 'floor');
-        platformTwo.y = 200
-        platformTwo.width = WIDTH/3;
+        platformTwo = platform.create(300, 250, 'floor');
+        platformTwo.width = WIDTH/4;
         platformTwo.body.immovable = true;
 
-        platformThree = platform.create(500, 0, 'floor');
-        platformThree.y = 150
-        platformThree.width = WIDTH/3;
+        platformThree = platform.create(500, 340, 'floor');
+        platformThree.width = WIDTH/4;
         platformThree.body.immovable = true;
+
+        platformFour = platform.create(550, 140, 'floor');
+        platformFour.width = WIDTH/4;
+        platformFour.body.immovable = true;
 
         return platform;
     }

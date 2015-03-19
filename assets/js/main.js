@@ -34,6 +34,7 @@
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
        game.load.image('player', 'assets/img/player.png', 0, 0);
+       game.load.image('enemy', 'assets/img/enemy.png', 0, 0);
        game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
     }
 
@@ -57,7 +58,7 @@
         if (allChildrenAreDead(enemies))
         {
             incrementWavesAndLevels();
-            createEnemies(currentWave);
+           // createEnemies(currentWave);
         }
 
         moveEnemies();
@@ -214,13 +215,17 @@
     {
         for (i = 0; i < amount; i++)
         {
-            e = enemies.create(getRandomVal(WIDTH), 0, 'player')
+            e = enemies.create(getRandomVal(WIDTH), 0, 'enemy')
             e.anchor.setTo(.5, 1);
             e.body.bounce.y = 0.2;
             e.body.gravity.y = 300;
             e.body.collideWorldBounds = true; 
             e.direction = 1;   
+            e.speed = getRandomFloat(3, 0.5);
         }
+
+        // make sure our bullet is in front of the enemies
+        game.world.bringToTop(bullet);
         
     }
 
@@ -230,6 +235,11 @@
             min = 70;
 
         return Math.floor((Math.random() * max) + min);
+    }
+
+    function getRandomFloat(max, min)
+    {
+        return (Math.random() * max) + min;
     }
 
     function createBullet()
@@ -317,13 +327,13 @@
 
             if (enemy.x >= 775)
             {
-                enemy.direction = -1;
+                enemy.direction = -enemy.speed;
                 enemy.scale.x = -1;
             }
             
             if (enemy.x <= 15) 
             {
-                enemy.direction = 1;
+                enemy.direction = enemy.speed;
                 enemy.scale.x = 1;
             }
 

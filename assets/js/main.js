@@ -5,6 +5,8 @@
     WIDTH = 800;
     HEIGHT = 450;
 
+    PLAYER_SPEED = 2;
+
     currentLevel = 1;
     currentWave = 1;
 
@@ -19,6 +21,13 @@
     var player;
 
     var bullet;
+
+    var inputStates = {
+        39: function(){ movePlayerForward(PLAYER_SPEED) },
+        37: function(){ movePlayerBackward(PLAYER_SPEED) },
+        38: function(){ playerJump() },
+        32: function(){ fireBullet() }
+    };
 
     function preload()
     {
@@ -64,32 +73,37 @@
             
     }
 
+    function getLastChar()
+    {
+        return game.input.keyboard.lasChar
+    }
+
     function checkInput()
     {
-        if (game.input.keyboard.isDown(39))
-        {
-            player.x += 1;
-            player.direction = 1;
-            player.scale.x = 1;
-        }
-
-        if (game.input.keyboard.isDown(37))
-        {
-            player.x -= 1;
-            player.direction = -1;
-            player.scale.x = -1;
-        }
-
-        if (game.input.keyboard.isDown(38))
-        {
-            player.body.velocity.y = -150;
-        }
-
-        if (game.input.keyboard.isDown(32))
-        {
-            fireBullet();
-        }
+        if (inputStates.hasOwnProperty(getLastChar()))
+            return inputStates[getLastChar()]();
     }
+
+    function movePlayerForward(speed)
+    {
+        player.x += speed;
+        player.direction = 1;
+        player.scale.x = 1;
+    }
+
+    function movePlayerBackward(speed)
+    {
+        player.x -= speed;
+        player.direction = -1;
+        player.scale.x = -1;
+    }
+
+    function playerJump()
+    {
+        player.body.velocity.y = -150;
+    }
+
+
 
     function createBackground()
     {

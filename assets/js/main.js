@@ -22,6 +22,8 @@
 
     var bullet;
 
+    var sounds = {};
+
     var inputStates = {
         39: function(){ movePlayerForward(PLAYER_SPEED) },
         37: function(){ movePlayerBackward(PLAYER_SPEED) },
@@ -36,12 +38,25 @@
        game.load.image('player', 'assets/img/player.png', 0, 0);
        game.load.image('enemy', 'assets/img/enemy.png', 0, 0);
        game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
+
+       game.load.audio('blast', ['assets/audio/blast.mp3']);
+       game.load.audio('jump', ['assets/audio/jump.mp3']);
+       game.load.audio('explosion', ['assets/audio/explosion.mp3']);
+       game.load.audio('theme', ['assets/audio/theme.mp3']);
+
     }
 
     function create()
     {
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
+        sounds['blast'] = game.add.audio('blast');
+        sounds['jump'] = game.add.audio('jump');
+        sounds['explosion'] = game.add.audio('explosion');
+        sounds['theme'] = game.add.audio('theme');
+
+        playSound('theme');
+    
         background = createBackground();
         platforms = createPlatforms();
         player = createPlayer();
@@ -51,6 +66,13 @@
         enemies.enableBody = true;
         enemies.physicsBodyType = Phaser.Physics.ARCADE;
         createEnemies(1)
+
+        game.input.keyboard.onDownCallback = function()
+        {
+            console.log('down')
+            if (game.input.keyboard.lastKey.keyCode == 38)
+                playSound('jump');
+        }
     }
 
     function update()
@@ -58,7 +80,6 @@
         if (allChildrenAreDead(enemies))
         {
             incrementWavesAndLevels();
-           // createEnemies(currentWave);
         }
 
         moveEnemies();
@@ -104,6 +125,7 @@
     function playerJump()
     {
         player.body.velocity.y = -150;
+        //playSound('jump');
     }
 
 
@@ -221,7 +243,9 @@
             e.body.bounce.y = 0.2;
             e.body.gravity.y = 300;
             e.body.collideWorldBounds = true; 
-            e.direction = 1;   
+            dir = chooseValueAtRandom(-1, 1);
+            e.direction = dir;
+            e.scale.x = dir;
             e.speed = getRandomFloat(3, 0.5);
         }
 
@@ -241,6 +265,11 @@
     function getRandomFloat(max, min)
     {
         return (Math.random() * max) + min;
+    }
+
+    function chooseValueAtRandom(valueOne, valueTwo)
+    {
+        return Math.random() < 0.5 ? valueOne : valueTwo;
     }
 
     function createBullet()
@@ -267,6 +296,7 @@
             setBulletPosition();
             setBulletDirection();
             bullet.revive();
+            playSound('blast');
         }
     }
 
@@ -389,6 +419,19 @@
         enemy.destroy();
         bullet.kill();
         incrementWavesAndLevels();
+        playSound('explosion');
+    }
+
+    function playSound(key)
+    {
+        if (sounds.hasOwnProperty(key))
+            sounds[key].play()
+    }
+
+    function pauseSound(key)
+    {
+        if (sounds.hasOwnProperty(key))
+            sounds[key].pause()
     }
 
 })()

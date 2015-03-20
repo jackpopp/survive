@@ -18,7 +18,21 @@ body {
 .game-container {
     position: relative;
     width: 800px;
-    margin: 0 auto;
+    margin: 200px auto;
+}
+
+.logo-container {
+    width: 100%;
+    height: 100%;
+    background: black;
+    text-align: center;
+    position: absolute;
+}
+
+.logo {
+    font-size: 80px;
+    margin-top: 160px;
+    color: white;
 }
 
 h1 {
@@ -29,7 +43,14 @@ h1 {
 
 .game-info {
     position: absolute;
-    right: 20px;
     top: 20px;
     color: rgb(13, 13, 13);
+}
+
+.game-info--left {
+    left: 20px;
+}
+
+.game-info--right {
+    right: 20px;
 }

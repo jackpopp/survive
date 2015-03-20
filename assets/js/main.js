@@ -49,7 +49,7 @@
        game.load.audio('blast', ['assets/audio/blast.wav']);
        game.load.audio('jump', ['assets/audio/jump.wav']);
        game.load.audio('explosion', ['assets/audio/explosion.wav']);
-       game.load.audio('theme', ['assets/audio/theme_two.mp3']);
+       game.load.audio('theme', ['assets/audio/theme_two_cut.ogg']);
        game.load.audio('death', ['assets/audio/death_three.wav']);
        game.load.audio('level_up', ['assets/audio/level_up.wav']);
        // http://www.bfxr.net/
@@ -58,6 +58,14 @@
 
     function create()
     {
+
+        game.paused = true;
+
+        setTimeout(function(){
+            document.getElementById('logo-container').remove()
+            game.paused = false;
+        }, 3000);
+
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         sounds['blast'] = game.add.audio('blast');
@@ -68,7 +76,8 @@
         sounds['level_up'] = game.add.audio('level_up');
 
         playSound('theme', true);
-        sounds['theme'].onLoop.add(function(){ playSound('theme', true) });
+        forceThemeLoop()
+
     
         background = createBackground();
         platforms = createPlatforms();
@@ -545,6 +554,22 @@
             sounds[key].play();
             sounds[key].loop = loop;
         }
+    }
+
+    /* Hack to check sound because looping and mp3 doesnt seem to work. */
+    function forceThemeLoop()
+    {
+        themeLoopCheck = setInterval(function()
+        {
+
+            duration = Math.round(sounds['theme'].durationMS)
+            currentTime = Math.round(sounds['theme'].currentTime)
+
+            if (duration > 0 && currentTime >= duration && game.paused === 0)
+            {
+                 playSound('theme', true) 
+            }
+        }, 1);
     }
 
     function pauseSound(key)

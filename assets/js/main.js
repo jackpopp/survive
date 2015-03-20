@@ -39,11 +39,10 @@
     {
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
-       game.load.image('player', 'assets/img/player.png', 0, 0);
        game.load.spritesheet('player_spritemap', 'assets/img/player_spritemap.png', 22, 35);
        game.load.spritesheet('enemy_spritemap', 'assets/img/enemy_spritemap.png', 22, 35);
-       game.load.image('enemy', 'assets/img/enemy.png', 0, 0);
-       game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
+       game.load.spritesheet('bullet_spritemap', 'assets/img/bullet_spritemap.png', 28, 15);
+       //game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
 
        game.load.audio('blast', ['assets/audio/blast.wav']);
        game.load.audio('jump', ['assets/audio/jump.wav']);
@@ -336,8 +335,12 @@
 
     function createBullet()
     {
-        bullet = game.add.sprite(0, 0, 'bullet');
+        bullet = game.add.sprite(0, 0, 'bullet_spritemap');
         game.physics.arcade.enable(bullet);
+        bullet.body.setSize(15, 28, 0, 0);
+        bullet.animations.add('fire_right', [0, 1, 2, 3], 8, true);
+        bullet.animations.add('fire_left', [4, 5, 6, 7], 8, true);
+
         //bullet.anchor.setTo(0.5, 1);
         bullet.checkWorldBounds = true;
 
@@ -379,10 +382,12 @@
             if (bullet.direction == 1)
             {
                 bullet.x+=2;
+                bullet.animations.play('fire_right');
             } 
             else 
             {
                 bullet.x-=2;
+                bullet.animations.play('fire_left');
             }
             
         }
@@ -391,8 +396,14 @@
     function setBulletPosition()
     {
         // base on direction, do we place front of back of sprite
-        bullet.body.x = player.body.x;
-        bullet.body.y = player.body.y;
+        if (player.direction == 1)
+        {
+            bullet.body.x = player.body.x + 20;
+        }
+        else {
+            bullet.body.x = player.body.x - 20;
+        }
+        bullet.body.y = player.body.y + 10;
     }
 
     /***
@@ -404,12 +415,12 @@
         if (player.direction == -1)
         {
             bullet.direction = -1;
-            bullet.scale.x = -1;
+            //bullet.scale.x = -1;
         }
         else 
         {
             bullet.direction = 1;
-            bullet.scale.x = 1;
+            //bullet.scale.x = 1;
         }
     }
 

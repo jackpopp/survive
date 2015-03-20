@@ -6,11 +6,13 @@
     HEIGHT = 450;
     BULLET_DAMAGE = 1;
     BULLET_TIMEOUT = 500;
+    SCORE_INCREMENT = 100;
 
     PLAYER_SPEED = 2;
 
     var currentLevel = 1;
     var currentWave = 1;
+    var currentScore = 0;
 
     var game = new Phaser.Game(800, 450, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
@@ -66,6 +68,7 @@
         sounds['level_up'] = game.add.audio('level_up');
 
         playSound('theme', true);
+        sounds['theme'].onLoop.add(function(){ playSound('theme', true) });
     
         background = createBackground();
         platforms = createPlatforms();
@@ -255,6 +258,7 @@
 
     function renderGameInfo()
     {
+        document.getElementById('score').innerHTML = currentScore;
         document.getElementById('level').innerHTML = currentLevel+"/"+MAX_LEVEL;
         document.getElementById('wave').innerHTML = currentWave;
     }
@@ -525,6 +529,7 @@
             // bit of a hack here because of js float point being weird
             if ( (enemy.health - 0.01) <= 0)
             {
+                currentScore+= SCORE_INCREMENT*currentWave;
                 enemy.destroy();
                 incrementWavesAndLevels();
             }
@@ -534,10 +539,11 @@
     function playSound(key, loop)
     {
         if (loop == undefined) loop = false;
+
         if (sounds.hasOwnProperty(key))
         {
             sounds[key].play();
-            sounds[key].loop;
+            sounds[key].loop = loop;
         }
     }
 

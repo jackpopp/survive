@@ -5,6 +5,7 @@
     WIDTH = 800;
     HEIGHT = 450;
     BULLET_DAMAGE = 1;
+    BULLET_TIMEOUT = 500;
 
     PLAYER_SPEED = 2;
 
@@ -22,6 +23,8 @@
     var player;
 
     var bullet;
+
+    var canFireBullet = true;
 
     var sounds = {};
 
@@ -304,12 +307,17 @@
 
     function fireBullet()
     {
-        if ( ! bullet.alive)
+        if ( ! bullet.alive && canFireBullet)
         {
             setBulletPosition();
             setBulletDirection();
             bullet.revive();
             playSound('blast');
+
+            canFireBullet = false
+            setTimeout(function(){
+                canFireBullet = true;
+            }, BULLET_TIMEOUT)
         }
     }
 

@@ -1,7 +1,7 @@
 (function(){
 
     MAX_WAVE = 10;
-    MAX_LEVEL = 10;
+    MAX_LEVEL = 5;
     WIDTH = 800;
     HEIGHT = 450;
     BULLET_DAMAGE = 1;
@@ -40,10 +40,13 @@
        game.load.image('enemy', 'assets/img/enemy.png', 0, 0);
        game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
 
-       game.load.audio('blast', ['assets/audio/blast.mp3']);
-       game.load.audio('jump', ['assets/audio/jump.mp3']);
-       game.load.audio('explosion', ['assets/audio/explosion.mp3']);
-       game.load.audio('theme', ['assets/audio/theme.mp3']);
+       game.load.audio('blast', ['assets/audio/blast.wav']);
+       game.load.audio('jump', ['assets/audio/jump.wav']);
+       game.load.audio('explosion', ['assets/audio/explosion.wav']);
+       game.load.audio('theme', ['assets/audio/theme_two.mp3']);
+       game.load.audio('death', ['assets/audio/death_three.wav']);
+       game.load.audio('level_up', ['assets/audio/level_up.wav']);
+       // http://www.bfxr.net/
 
     }
 
@@ -55,6 +58,8 @@
         sounds['jump'] = game.add.audio('jump');
         sounds['explosion'] = game.add.audio('explosion');
         sounds['theme'] = game.add.audio('theme');
+        sounds['death'] = game.add.audio('death');
+        sounds['level_up'] = game.add.audio('level_up');
 
         playSound('theme');
     
@@ -196,6 +201,7 @@
             {
                 currentWave++;
                 currentLevel = 1;
+                playSound('level_up');
             }
 
             createEnemies(currentLevel);
@@ -418,7 +424,18 @@
 
     function playerHit(enemy, player)
     {
-        game.paused = true;
+        playSound('death');
+        player.kill();
+        showPlayAgainButton();
+    }
+
+    function showPlayAgainButton()
+    {
+        sounds['theme'].fadeOut(5000)
+        setTimeout(function(){
+            game.paused = true;
+        }, 5000)
+        
     }
 
     function enemyHit(enemy, bullet)

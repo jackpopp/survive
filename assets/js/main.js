@@ -103,6 +103,7 @@
         checkIfBulletHasHitEnemy();
         checkIfEnemyHasHitPlayer();
         game.physics.arcade.collide(platforms, player);
+
         game.physics.arcade.collide(platforms, enemies);
 
         checkInput();
@@ -300,6 +301,7 @@
             enemy.body.collideWorldBounds = true; 
             enemy.direction = chooseValueAtRandom(-1, 1);
             enemy.speed = getRandomFloat(2, 0.5);
+            enemy.lastY = Math.round(enemy.body.y)
 
             enemy.body.setSize(22, 35, 0, 0);
             enemy.animations.add('standing_left', [12, 13, 14, 15], 8, true);
@@ -437,16 +439,18 @@
             speed = 1;
 
             if (enemy.x >= 775)
-            {
                 enemy.direction = -1;
-                //enemy.scale.x = -1;
-                setDirectionAnimation(enemy);
-            }
             
             if (enemy.x <= 15) 
-            {
                 enemy.direction = 1;
-                //enemy.scale.x = 1;
+
+            //setDirectionAnimation(enemy);
+            if (enemy.lastY !== enemy.body.y.toFixed(2)){
+                enemy.lastY = enemy.body.y.toFixed(2)
+                setStandingAnimation(enemy);
+            }
+            else 
+            {
                 setDirectionAnimation(enemy);
             }
 
@@ -458,7 +462,6 @@
             {
                 enemy.x-= speed;
             }
-
         }
     }
 

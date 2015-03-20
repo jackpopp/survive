@@ -535,7 +535,10 @@
     {
         if (loop == undefined) loop = false;
         if (sounds.hasOwnProperty(key))
-            sounds[key].play().loop = loop;
+        {
+            sounds[key].play();
+            sounds[key].loop;
+        }
     }
 
     function pauseSound(key)

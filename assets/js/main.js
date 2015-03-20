@@ -40,6 +40,7 @@
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
        game.load.image('player', 'assets/img/player.png', 0, 0);
+       game.load.spritesheet('player_spritemap', 'assets/img/player_spritemap.png', 22, 35);
        game.load.image('enemy', 'assets/img/enemy.png', 0, 0);
        game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
 
@@ -82,6 +83,11 @@
                 playSound('jump');
         }
 
+        game.input.keyboard.onUpCallback = function()
+        {
+            setPlayerStanding();
+        }
+
         renderGameInfo();
     }
 
@@ -122,14 +128,16 @@
     {
         player.x += speed;
         player.direction = 1;
-        player.scale.x = 1;
+        //player.scale.x = 1;
+        player.animations.play('right');
     }
 
     function movePlayerBackward(speed)
     {
         player.x -= speed;
         player.direction = -1;
-        player.scale.x = -1;
+        //player.scale.x = -1;
+        player.animations.play('left');
     }
 
     function playerJump()
@@ -180,14 +188,35 @@
 
     function createPlayer()
     {
-        player = game.add.sprite(0, 0, 'player');
+        player = game.add.sprite(0, 0, 'player_spritemap');
         game.physics.arcade.enable(player);
-        player.anchor.setTo(.5, 1);
+        //player.anchor.setTo(.5, 1);
         player.body.bounce.y = 0.2;
         player.body.gravity.y = 300;
+        player.body.setSize(22, 35, 0, 0);
         player.body.collideWorldBounds = true; 
 
+        player.animations.add('standing_left', [12, 13, 14, 15], 10, true);
+        player.animations.add('standing_right', [0, 1, 2, 3], 10, true);
+        player.animations.add('right', [4, 5, 6, 7], 10, true);
+        player.animations.add('left', [8, 9, 10, 11], 10, true);
+
+        player.direction = 1;
+        setPlayerStanding()
+
         return player;
+    }
+
+    function setPlayerStanding()
+    {
+        if (player.direction === 1)
+        {
+            player.animations.play('standing_right');
+        }
+        else 
+        {
+            player.animations.play('standing_left');
+        }
     }
 
     /***

@@ -421,7 +421,9 @@
     {
         for (i = 0; i < enemies.children.length; i++)
         {
-            enemy = enemies.children[i]
+            enemy = enemies.children[i];
+            speed = enemy.speed;
+            speed = 1;
 
             if (enemy.x >= 775)
             {
@@ -439,11 +441,11 @@
 
             if (enemy.direction > 0)
             {
-                enemy.x+=enemy.speed;
+                enemy.x+= speed;
             }
             else 
             {
-                enemy.x-=enemy.speed;
+                enemy.x-= speed;
             }
 
         }

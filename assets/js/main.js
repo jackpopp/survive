@@ -61,7 +61,7 @@
         sounds['death'] = game.add.audio('death');
         sounds['level_up'] = game.add.audio('level_up');
 
-        playSound('theme');
+        playSound('theme', true);
     
         background = createBackground();
         platforms = createPlatforms();
@@ -459,10 +459,11 @@
         }
     }
 
-    function playSound(key)
+    function playSound(key, loop)
     {
+        if (loop == undefined) loop = false;
         if (sounds.hasOwnProperty(key))
-            sounds[key].play()
+            sounds[key].play().loop = loop;
     }
 
     function pauseSound(key)

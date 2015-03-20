@@ -565,7 +565,7 @@
             duration = Math.round(sounds['theme'].durationMS)
             currentTime = Math.round(sounds['theme'].currentTime)
 
-            if (duration > 0 && currentTime >= duration && game.paused === 0)
+            if (duration > 0 && currentTime >= duration)
             {
                  playSound('theme', true) 
             }

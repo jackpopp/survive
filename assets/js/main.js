@@ -41,6 +41,7 @@
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
        game.load.image('player', 'assets/img/player.png', 0, 0);
        game.load.spritesheet('player_spritemap', 'assets/img/player_spritemap.png', 22, 35);
+       game.load.spritesheet('enemy_spritemap', 'assets/img/enemy_spritemap.png', 22, 35);
        game.load.image('enemy', 'assets/img/enemy.png', 0, 0);
        game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
 
@@ -85,7 +86,7 @@
 
         game.input.keyboard.onUpCallback = function()
         {
-            setPlayerStanding();
+            setStandingAnimation(player);
         }
 
         renderGameInfo();
@@ -128,16 +129,14 @@
     {
         player.x += speed;
         player.direction = 1;
-        //player.scale.x = 1;
-        player.animations.play('right');
+        setDirectionAnimation(player)
     }
 
     function movePlayerBackward(speed)
     {
         player.x -= speed;
         player.direction = -1;
-        //player.scale.x = -1;
-        player.animations.play('left');
+        setDirectionAnimation(player)
     }
 
     function playerJump()
@@ -193,29 +192,41 @@
         //player.anchor.setTo(.5, 1);
         player.body.bounce.y = 0.2;
         player.body.gravity.y = 300;
-        player.body.setSize(22, 35, 0, 0);
         player.body.collideWorldBounds = true; 
 
-        player.animations.add('standing_left', [12, 13, 14, 15], 10, true);
-        player.animations.add('standing_right', [0, 1, 2, 3], 10, true);
-        player.animations.add('right', [4, 5, 6, 7], 10, true);
-        player.animations.add('left', [8, 9, 10, 11], 10, true);
+        player.body.setSize(22, 35, 0, 0);
+        player.animations.add('standing_left', [12, 13, 14, 15], 8, true);
+        player.animations.add('standing_right', [0, 1, 2, 3], 8, true);
+        player.animations.add('walking_right', [4, 5, 6, 7], 8, true);
+        player.animations.add('walking_left', [8, 9, 10, 11], 8, true);
 
         player.direction = 1;
-        setPlayerStanding()
+        setStandingAnimation(player)
 
         return player;
     }
 
-    function setPlayerStanding()
+    function setStandingAnimation(sprite)
     {
-        if (player.direction === 1)
+        if (sprite.direction === 1)
         {
-            player.animations.play('standing_right');
+            sprite.animations.play('standing_right');
         }
         else 
         {
-            player.animations.play('standing_left');
+            sprite.animations.play('standing_left');
+        }
+    }
+
+    function setDirectionAnimation(sprite)
+    {
+        if (sprite.direction === 1)
+        {
+            sprite.animations.play('walking_right');
+        }
+        else 
+        {
+            sprite.animations.play('walking_left');
         }
     }
 
@@ -283,15 +294,21 @@
     {
         for (i = 0; i < amount; i++)
         {
-            e = enemies.create(getRandomVal(WIDTH), 0, 'enemy')
-            e.anchor.setTo(.5, 1);
-            e.body.bounce.y = 0.2;
-            e.body.gravity.y = 300;
-            e.body.collideWorldBounds = true; 
-            dir = chooseValueAtRandom(-1, 1);
-            e.direction = dir;
-            e.scale.x = dir;
-            e.speed = getRandomFloat(3, 0.5);
+            enemy = enemies.create(getRandomVal(WIDTH), 0, 'enemy_spritemap')
+            enemy.anchor.setTo(.5, 1);
+            enemy.body.bounce.y = 0.2;
+            enemy.body.gravity.y = 300;
+            enemy.body.collideWorldBounds = true; 
+            enemy.direction = chooseValueAtRandom(-1, 1);
+            enemy.speed = getRandomFloat(2, 0.5);
+
+            enemy.body.setSize(22, 35, 0, 0);
+            enemy.animations.add('standing_left', [12, 13, 14, 15], 8, true);
+            enemy.animations.add('standing_right', [0, 1, 2, 3], 8, true);
+            enemy.animations.add('walking_right', [4, 5, 6, 7], 8, true);
+            enemy.animations.add('walking_left', [8, 9, 10, 11], 8, true);
+
+            setDirectionAnimation(enemy);
         }
 
         // make sure our bullet is in front of the enemies
@@ -408,23 +425,25 @@
 
             if (enemy.x >= 775)
             {
-                enemy.direction = -enemy.speed;
-                enemy.scale.x = -1;
+                enemy.direction = -1;
+                //enemy.scale.x = -1;
+                setDirectionAnimation(enemy);
             }
             
             if (enemy.x <= 15) 
             {
-                enemy.direction = enemy.speed;
-                enemy.scale.x = 1;
+                enemy.direction = 1;
+                //enemy.scale.x = 1;
+                setDirectionAnimation(enemy);
             }
 
             if (enemy.direction > 0)
             {
-                enemy.x+=1;
+                enemy.x+=enemy.speed;
             }
             else 
             {
-                enemy.x-=1;
+                enemy.x-=enemy.speed;
             }
 
         }

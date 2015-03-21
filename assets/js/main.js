@@ -22,7 +22,11 @@
 
     var enemies;
 
+    var backgroundObjects;
+
     var player;
+
+    var foregroundObjects;
 
     var bullet;
 
@@ -41,15 +45,17 @@
     {
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
+       game.load.image('rubbish_bin', 'assets/img/rubbish_bin.png', 0, 0);
+       game.load.image('lampost', 'assets/img/lampost.png', 0, 0);
+
        game.load.spritesheet('player_spritemap', 'assets/img/player_spritemap.png', 22, 35);
        game.load.spritesheet('enemy_spritemap', 'assets/img/enemy_spritemap.png', 22, 35);
        game.load.spritesheet('bullet_spritemap', 'assets/img/bullet_spritemap.png', 28, 15);
-       //game.load.image('bullet', 'assets/img/bullet.png', 0, 0);
 
        game.load.audio('blast', ['assets/audio/blast.wav']);
        game.load.audio('jump', ['assets/audio/jump.wav']);
        game.load.audio('explosion', ['assets/audio/explosion.wav']);
-       game.load.audio('theme', ['assets/audio/theme_two_cut.ogg']);
+       game.load.audio('theme', ['assets/audio/theme_two_cut.mp3']);
        game.load.audio('death', ['assets/audio/death_three.wav']);
        game.load.audio('level_up', ['assets/audio/level_up.wav']);
        // http://www.bfxr.net/
@@ -81,7 +87,9 @@
     
         background = createBackground();
         platforms = createPlatforms();
+        backgroundObjects = createBackgroundObjects()
         player = createPlayer();
+        foregroundObjects = createForegroundObjects();
         bullet = createBullet();
 
         enemies = game.add.group();
@@ -166,6 +174,40 @@
         background.width = WIDTH;
 
         return background;
+    }
+
+    function createBackgroundObjects()
+    {
+        group = game.add.group();
+        group.enableBody = true;
+
+        lampost = group.create(30, 350, 'lampost');
+        lampost.body.immovable = true;
+
+        lampost = group.create(330, 350, 'lampost');
+        lampost.body.immovable = true;
+
+        lampost = group.create(600, 350, 'lampost');
+        lampost.body.immovable = true;
+
+        return group;
+    }
+
+    function createForegroundObjects()
+    {
+        group = game.add.group();
+        group.enableBody = true;
+
+        bin = group.create(50, 405, 'rubbish_bin');
+        bin.body.immovable = true;
+
+        bin = group.create(350, 405, 'rubbish_bin');
+        bin.body.immovable = true;
+
+        bin = group.create(620, 405, 'rubbish_bin');
+        bin.body.immovable = true;
+
+        return group;
     }
 
     function createPlatforms()
@@ -325,8 +367,9 @@
             setDirectionAnimation(enemy);
         }
 
-        // make sure our bullet is in front of the enemies
+        // make sure our bullet and foreground objects are in front of the enemies
         game.world.bringToTop(bullet);
+        game.world.bringToTop(foregroundObjects);
         
     }
 
@@ -552,7 +595,7 @@
         if (sounds.hasOwnProperty(key))
         {
             sounds[key].play();
-            sounds[key].loop = loop;
+            //sounds[key].loop = loop;
         }
     }
 
@@ -565,9 +608,17 @@
             duration = Math.round(sounds['theme'].durationMS)
             currentTime = Math.round(sounds['theme'].currentTime)
 
+            // music wont start???
+            // remove track then add again
+
             if (duration > 0 && currentTime >= duration)
             {
-                 playSound('theme', true) 
+                //console.log('play')
+                // destroy and re add here
+                //sounds['theme'].stop()
+                sounds['theme'].play()
+                //playSound('theme', true) 
+                //game.add.audio('theme').play()
             }
         }, 1);
     }

@@ -5,14 +5,16 @@
     WIDTH = 800;
     HEIGHT = 450;
     BULLET_DAMAGE = 1;
-    BULLET_TIMEOUT = 500;
+    BULLET_TIMEOUT = 1000;
     SCORE_INCREMENT = 100;
+    JUMP_PRESS_MAX = 2;
 
     PLAYER_SPEED = 2;
 
     var currentLevel = 1;
     var currentWave = 1;
     var currentScore = 0;
+    var jumpPressed = 0;
 
     var game = new Phaser.Game(800, 450, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
@@ -45,6 +47,7 @@
     {
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
+       game.load.image('platform', 'assets/img/platform.png', 0, 0);
        game.load.image('rubbish_bin', 'assets/img/rubbish_bin.png', 0, 0);
        game.load.image('lampost', 'assets/img/lampost.png', 0, 0);
 
@@ -99,8 +102,11 @@
 
         game.input.keyboard.onDownCallback = function()
         {
-            if (game.input.keyboard.lastKey.keyCode == 38)
+            if ( (game.input.keyboard.lastKey.keyCode == 38) && (jumpPressed <= JUMP_PRESS_MAX) )
+            {
+                jumpPressed++;
                 playSound('jump');
+            }
         }
 
         game.input.keyboard.onUpCallback = function()
@@ -127,6 +133,11 @@
         game.physics.arcade.collide(platforms, enemies);
 
         checkInput();
+
+        if (player.body.touching.down)
+        {
+            resetJumpPressed()
+        }
     }
 
     function checkInput()
@@ -161,11 +172,16 @@
 
     function playerJump()
     {
-        player.body.velocity.y = -150;
+        // can only jump twice until landed
+        // if jump pressed is less than two then jump else do nothing
+        // reset on collision with platform or floor
+        if (jumpPressed <= JUMP_PRESS_MAX)
+        {
+            player.body.velocity.y = -150;
+        }
+        
         //playSound('jump');
     }
-
-
 
     function createBackground()
     {
@@ -184,10 +200,10 @@
         lampost = group.create(30, 350, 'lampost');
         lampost.body.immovable = true;
 
-        lampost = group.create(330, 350, 'lampost');
+        lampost = group.create(380, 350, 'lampost');
         lampost.body.immovable = true;
 
-        lampost = group.create(600, 350, 'lampost');
+        lampost = group.create(730, 350, 'lampost');
         lampost.body.immovable = true;
 
         return group;
@@ -201,10 +217,10 @@
         bin = group.create(50, 405, 'rubbish_bin');
         bin.body.immovable = true;
 
-        bin = group.create(350, 405, 'rubbish_bin');
+        bin = group.create(400, 405, 'rubbish_bin');
         bin.body.immovable = true;
 
-        bin = group.create(620, 405, 'rubbish_bin');
+        bin = group.create(750, 405, 'rubbish_bin');
         bin.body.immovable = true;
 
         return group;
@@ -220,19 +236,19 @@
         floorPlatform.width = WIDTH;
         floorPlatform.body.immovable = true;
 
-        platformOne = platform.create(50, 150, 'floor');
+        platformOne = platform.create(50, 150, 'platform');
         platformOne.width = WIDTH/4;
         platformOne.body.immovable = true; 
 
-        platformTwo = platform.create(300, 250, 'floor');
+        platformTwo = platform.create(300, 250, 'platform');
         platformTwo.width = WIDTH/4;
         platformTwo.body.immovable = true;
 
-        platformThree = platform.create(500, 340, 'floor');
+        platformThree = platform.create(500, 340, 'platform');
         platformThree.width = WIDTH/4;
         platformThree.body.immovable = true;
 
-        platformFour = platform.create(550, 140, 'floor');
+        platformFour = platform.create(550, 140, 'platform');
         platformFour.width = WIDTH/4;
         platformFour.body.immovable = true;
 
@@ -561,6 +577,7 @@
     {
         sounds['theme'].fadeOut(5000)
         setTimeout(function(){
+            renderEndScreen();
             game.paused = true;
         }, 5000)
         
@@ -627,6 +644,21 @@
     {
         if (sounds.hasOwnProperty(key))
             sounds[key].pause()
+    }
+
+    function resetJumpPressed()
+    {
+        jumpPressed = 0
+    }
+
+    function renderEndScreen()
+    {
+        // hide canvas
+        // show end screen 
+        // set score
+        document.querySelector('.score-message').innerHTML = currentScore;
+        document.querySelector('canvas').style.display='none'
+        document.querySelector('.end-screen').style.display = 'block';
     }
 
 })()

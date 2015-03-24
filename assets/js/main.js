@@ -39,7 +39,7 @@
     var inputStates = {
         39: function(){ movePlayerForward(PLAYER_SPEED) },
         37: function(){ movePlayerBackward(PLAYER_SPEED) },
-        38: function(){ playerJump() },
+        //38: function(){ playerJump() },
         32: function(){ fireBullet() }
     };
 
@@ -102,10 +102,10 @@
 
         game.input.keyboard.onDownCallback = function()
         {
-            if ( (game.input.keyboard.lastKey.keyCode == 38) && (jumpPressed <= JUMP_PRESS_MAX) )
+            // add jump timeout fix weird double jump problem
+            if ( (game.input.keyboard.lastKey.keyCode == 38))
             {
-                jumpPressed++;
-                playSound('jump');
+                playerJump();
             }
         }
 
@@ -175,9 +175,11 @@
         // can only jump twice until landed
         // if jump pressed is less than two then jump else do nothing
         // reset on collision with platform or floor
-        if (jumpPressed <= JUMP_PRESS_MAX)
+        if (jumpPressed < JUMP_PRESS_MAX)
         {
-            player.body.velocity.y = -150;
+            jumpPressed++;
+            playSound('jump');
+            player.body.velocity.y = -250;
         }
         
         //playSound('jump');

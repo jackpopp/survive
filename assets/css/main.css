@@ -13,6 +13,7 @@
 
 body {
     font-family: upheaval_tt_brkregular;
+    background: black
 }
 
 .game-container {
@@ -36,10 +37,11 @@ body {
 }
 
 .end-screen {
-    font-size: 80px;
-    margin-top: 130px;
+    font-size: 60px;
+    margin-top: 20px;
     display: none;
     cursor: pointer;
+    color: white;
 }
 
 h1 {
@@ -60,4 +62,15 @@ h1 {
 
 .game-info--right {
     right: 20px;
+}
+
+.high-score {
+      font-size: 25px;
+      list-style: none;
+      padding: 5px 0 0 0;
+      margin: 0;
+}
+
+.high-score li {
+    padding: 10px 0;
 }

@@ -15,6 +15,7 @@
     var currentWave = 1;
     var currentScore = 0;
     var jumpPressed = 0;
+    var muted = true;
 
     var game = new Phaser.Game(800, 450, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
@@ -53,7 +54,7 @@
 
        game.load.spritesheet('player_spritemap', 'assets/img/player_spritemap.png', 22, 35);
        game.load.spritesheet('enemy_spritemap', 'assets/img/enemy_spritemap.png', 22, 35);
-       game.load.spritesheet('bullet_spritemap', 'assets/img/bullet_spritemap.png', 28, 15);
+       game.load.spritesheet('bullet_spritemap', 'assets/img/laser_spritemap.png', 23, 11);
 
        game.load.audio('blast', ['assets/audio/blast.wav']);
        game.load.audio('jump', ['assets/audio/jump.wav']);
@@ -100,13 +101,13 @@
         enemies.physicsBodyType = Phaser.Physics.ARCADE;
         createEnemies(1)
 
+        addEventListeners()
+
         game.input.keyboard.onDownCallback = function()
         {
             // add jump timeout fix weird double jump problem
-            if ( (game.input.keyboard.lastKey.keyCode == 38))
-            {
+            if ((game.input.keyboard.lastKey.keyCode == 38))
                 playerJump();
-            }
         }
 
         game.input.keyboard.onUpCallback = function()
@@ -119,10 +120,10 @@
 
     function update()
     {
-        if (allChildrenAreDead(enemies))
+        /*if (allChildrenAreDead(enemies))
         {
             incrementWavesAndLevels();
-        }
+        }*/
 
         moveEnemies();
         moveBullet();
@@ -413,9 +414,9 @@
     {
         bullet = game.add.sprite(0, 0, 'bullet_spritemap');
         game.physics.arcade.enable(bullet);
-        bullet.body.setSize(15, 28, 0, 0);
-        bullet.animations.add('fire_right', [0, 1, 2, 3], 8, true);
-        bullet.animations.add('fire_left', [4, 5, 6, 7], 8, true);
+        bullet.body.setSize(11, 23, 0, 0);
+        bullet.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
+        bullet.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
 
         //bullet.anchor.setTo(0.5, 1);
         bullet.checkWorldBounds = true;
@@ -609,38 +610,50 @@
 
     function playSound(key, loop)
     {
-        if (loop == undefined) loop = false;
-
-        if (sounds.hasOwnProperty(key))
+        if ( ! muted)
         {
-            sounds[key].play();
-            //sounds[key].loop = loop;
+            if (loop == undefined) loop = false;
+
+            if (sounds.hasOwnProperty(key))
+            {
+                sounds[key].play();
+                //sounds[key].loop = loop;
+            }
         }
     }
 
     /* Hack to check sound because looping and mp3 doesnt seem to work. */
     function forceThemeLoop()
     {
-        themeLoopCheck = setInterval(function()
+        if ( ! muted)
         {
-
-            duration = Math.round(sounds['theme'].durationMS)
-            currentTime = Math.round(sounds['theme'].currentTime)
-
-            // music wont start???
-            // remove track then add again
-
-            if (duration > 0 && currentTime >= duration)
+            themeLoopCheck = setInterval(function()
             {
-                //console.log('play')
-                // destroy and re add here
-                //sounds['theme'].stop()
-                sounds['theme'].play()
-                //playSound('theme', true) 
-                //game.add.audio('theme').play()
-            }
-        }, 1);
+
+                duration = Math.round(sounds['theme'].durationMS)
+                currentTime = Math.round(sounds['theme'].currentTime)
+
+                // music wont start???
+                // remove track then add again
+
+                if (duration > 0 && currentTime >= duration)
+                {
+                    //console.log('play')
+                    // destroy and re add here
+                    //sounds['theme'].stop()
+                    sounds['theme'].play()
+                    //playSound('theme', true) 
+                    //game.add.audio('theme').play()
+                }
+            }, 1);
+        }
     }
+
+    /***
+    * Pauses a sound in the sound object if the key passed is available
+    *
+    * @param string key
+    ***/
 
     function pauseSound(key)
     {
@@ -648,10 +661,18 @@
             sounds[key].pause()
     }
 
+    /***
+    * Resets the jump pressed value to 0 so that the player can jump again
+    ***/
+
     function resetJumpPressed()
     {
         jumpPressed = 0
     }
+
+    /***
+    * Renders the games end screen
+    ***/
 
     function renderEndScreen()
     {
@@ -659,8 +680,65 @@
         // show end screen 
         // set score
         document.querySelector('.score-message').innerHTML = currentScore;
-        document.querySelector('canvas').style.display='none'
+        document.querySelector('canvas').style.display= 'none'
         document.querySelector('.end-screen').style.display = 'block';
+    }
+
+    /***
+    * Hides the games end screen
+    ***/
+
+    function hideEndScreen()
+    {
+        document.querySelector('canvas').style.display= 'block'
+        document.querySelector('.end-screen').style.display = 'none';
+    }
+
+    /***
+    * Adds any event listeners needed
+    ***/
+
+    function addEventListeners()
+    {
+        document.querySelector('.js-play-again').addEventListener('click', restart) 
+    }
+
+    /***
+    * Restarts a game
+    ***/
+
+    function restart()
+    {
+        // reset score, level, wave
+        // put player at top of screen
+        // hide end screen
+        // destroy enemies and readd
+        // set player to 0,0
+        // play sound again
+        currentScore = 0;
+        currentWave = 1;
+        currentLevel = 1;
+        renderGameInfo();
+        player.x = 20;
+        player.y = 0;
+        player.revive();
+        game.paused = false;
+        removeChildren(enemies);
+        createEnemies(1);
+        hideEndScreen();
+    }
+
+    /***
+    * Removes all children from a group by destorying them
+    ***/
+
+    function removeChildren(group)
+    {
+        for (i = 0; i < group.children.length; i++)
+        {
+            console.log('here')
+            enemies.children[i].destroy()
+        }
     }
 
 })()

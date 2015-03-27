@@ -18,7 +18,7 @@
 
     PLAYER_START_X = 35;
     PLAYER_SPEED = 2;
-    LASER_FIRE_TIMEOUT = 750;
+    LASER_FIRE_TIMEOUT = 500;
 
     var currentLevel = 1;
     var currentWave = 1;

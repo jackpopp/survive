@@ -15,7 +15,9 @@
     var currentWave = 1;
     var currentScore = 0;
     var jumpPressed = 0;
-    var muted = true;
+    var muted = false;
+    var showHightscore = false;
+    var volume = 0.3;
 
     var game = new Phaser.Game(WIDTH, HEIGHT, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
@@ -83,6 +85,7 @@
         setCanvasSize();
 
         game.paused = true;
+        game.over = false;
 
         setTimeout(function(){
             document.getElementById('logo-container').remove()
@@ -91,15 +94,15 @@
 
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
-        sounds['blast'] = game.add.audio('blast');
-        sounds['jump'] = game.add.audio('jump');
-        sounds['explosion'] = game.add.audio('explosion');
-        sounds['theme'] = game.add.audio('theme');
-        sounds['death'] = game.add.audio('death');
-        sounds['level_up'] = game.add.audio('level_up');
+        sounds['blast'] = game.add.audio('blast', volume);
+        sounds['jump'] = game.add.audio('jump', volume);
+        sounds['explosion'] = game.add.audio('explosion', volume);
+        sounds['theme'] = game.add.audio('theme', volume);
+        sounds['death'] = game.add.audio('death', volume);
+        sounds['level_up'] = game.add.audio('level_up', volume);
 
         playSound('theme', true);
-        forceThemeLoop()
+        resartThemeMusicIfEnded();
 
     
         background = createBackground();
@@ -120,7 +123,7 @@
         game.input.keyboard.onDownCallback = function()
         {
             // add jump timeout fix weird double jump problem
-            if ((game.input.keyboard.lastKey.keyCode == 38))
+            if ((game.input.keyboard.lastKey.keyCode == 38)  && (! game.over))
                 playerJump();
         }
 
@@ -171,12 +174,16 @@
 
     function checkInput()
     {
-        for (i = 0; i < game.input.keyboard._keys.length; i++)
+        if ( ! game.over)
         {
-            keyCode = getKeyCodeFromKey(game.input.keyboard._keys[i])
-            if (inputStates.hasOwnProperty(keyCode))
-                return inputStates[keyCode]();
+            for (i = 0; i < game.input.keyboard._keys.length; i++)
+            {
+                keyCode = getKeyCodeFromKey(game.input.keyboard._keys[i])
+                if (inputStates.hasOwnProperty(keyCode))
+                    return inputStates[keyCode]();
+            }
         }
+        
     }
 
     /***
@@ -603,22 +610,35 @@
         }
     }
 
+    /***
+    * If player is hit then end the game.
+    * Kill the player and show the play again screen
+    ***/
+
     function playerHit(enemy, player)
     {
         playSound('death');
+        stopThemeCheck()
         player.kill();
         showPlayAgainButton();
+        game.over = true;
     }
 
     function showPlayAgainButton()
     {
-        sounds['theme'].fadeOut(5000)
+        ms = 5000
+        //sounds['theme'].fadeOut(ms)
         setTimeout(function(){
             renderEndScreen();
-            game.paused = true;
-        }, 5000)
+            //game.paused = true;
+        }, ms)
         
     }
+
+    /***
+    * Callback when a players bullet hits the enemy
+    * Removes health or kills the enemies, inncrement score, waves and levels.
+    ***/
 
     function enemyHit(enemy, bullet)
     {
@@ -642,6 +662,10 @@
         }
     }
 
+    /***
+    * Plays a sound in our sounds object
+    ***/
+
     function playSound(key, loop)
     {
         if ( ! muted)
@@ -656,8 +680,11 @@
         }
     }
 
-    /* Hack to check sound because looping and mp3 doesnt seem to work. */
-    function forceThemeLoop()
+    /***
+    * Hack to check sound because looping and mp3 doesnt seem to work. 
+    ***/
+
+    function resartThemeMusicIfEnded()
     {
         if ( ! muted)
         {
@@ -681,6 +708,11 @@
                 }
             }, 1);
         }
+    }
+
+    function stopThemeCheck()
+    {
+        themeLoopCheck = null
     }
 
     /***
@@ -749,17 +781,26 @@
         // destroy enemies and readd
         // set player to 0,0
         // play sound again
-        currentScore = 0;
-        currentWave = 1;
-        currentLevel = 1;
+        resetWaves();
         renderGameInfo();
         player.x = 20;
         player.y = 0;
         player.revive();
         game.paused = false;
+
+        //sounds['theme'].restart('', 0, volume);
+        //resartThemeMusicIfEnded();
+
         removeChildren(enemies);
         createEnemies(1);
         hideEndScreen();
+    }
+
+    function resetWaves()
+    {   
+        currentScore = 0;
+        currentWave = 1;
+        currentLevel = 1;
     }
 
     /***
@@ -770,7 +811,6 @@
     {
         for (i = 0; i < group.children.length; i++)
         {
-            console.log('here')
             enemies.children[i].destroy()
         }
     }

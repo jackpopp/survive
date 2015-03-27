@@ -15,7 +15,8 @@
 
 body {
     font-family: upheaval_tt_brkregular;
-    background: black
+    background: black;
+    letter-spacing: 3px;
 }
 
 .game-container {
@@ -84,4 +85,11 @@ h1 {
 
 .high-score-list li {
     padding: 10px 0;
+}
+
+.game-instructions {
+    color: white;
+    text-align: center;
+    padding-top: 20px;
+    font-size: 18px;
 }

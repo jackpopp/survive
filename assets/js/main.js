@@ -8,6 +8,7 @@
     BULLET_TIMEOUT = 1000;
     SCORE_INCREMENT = 100;
     JUMP_PRESS_MAX = 2;
+    JUMP_VELOCITY = -220;
 
     PLAYER_SPEED = 2;
 
@@ -39,17 +40,35 @@
 
     var sounds = {};
 
+    var platformData = [
+        // top
+        //{x: 45, y: 120, sprite: 'platform_small'},
+        {x: 200, y: 135, sprite: 'platform_small'},
+        {x: 355, y: 115, sprite: 'platform_small'},
+        {x: 496, y: 125, sprite: 'platform_small'},
+        //{x: 657, y: 110, sprite: 'platform_small'},
+
+        // middle
+        {x: 60, y: 245, sprite: 'platform_medium'},
+        {x: 290, y: 280, sprite: 'platform_small'},
+        {x: 410, y: 280, sprite: 'platform_small'},
+        {x: 550, y: 245, sprite: 'platform_medium'},
+
+        {x: 60, y: 345, sprite: 'platform_small'},
+        {x: 650, y: 345, sprite: 'platform_small'},
+    ];
+
     var backgroundObjects = [
         {x: 30, y: 350, sprite: 'lampost'},
         {x: 380, y: 350, sprite: 'lampost'},
         {x: 730, y: 350, sprite: 'lampost'},
-    ]
+    ];
 
     var foregroundObjects = [
         {x: 50, y: 405, sprite: 'rubbish_bin'},
         {x: 400, y: 405, sprite: 'rubbish_bin'},
         {x: 750, y: 405, sprite: 'rubbish_bin'},
-    ]
+    ];
 
     var inputStates = {
         39: function(){ movePlayerForward(PLAYER_SPEED) },
@@ -204,35 +223,27 @@
 
     function createPlatforms()
     {
-        platform = game.add.group();
-        platform.enableBody = true;
+        platforms = game.add.group();
+        platforms.enableBody = true;
 
-        floorPlatform = platform.create(0, 0, 'floor');
+        floorPlatform = platforms.create(0, 0, 'floor');
         floorPlatform.y = HEIGHT - floorPlatform.height
         floorPlatform.width = WIDTH;
         floorPlatform.body.immovable = true;
 
-        platformOne = platform.create(50, 150, 'platform_medium');
-        //platformOne.width = WIDTH/4;
-        platformOne.body.immovable = true; 
+        for(i = 0; i < platformData.length; i++)
+        {
+            p = platformData[i];
+            p = platforms.create(p.x, p.y, p.sprite);
+            p.body.immovable = true;
+        }
 
-        platformTwo = platform.create(300, 250, 'platform_medium');
-        //platformTwo.width = WIDTH/4;
-        platformTwo.body.immovable = true;
-
-        platformThree = platform.create(500, 340, 'platform_medium');
-        //platformThree.width = WIDTH/4;
-        platformThree.body.immovable = true;
-
-        platformFour = platform.create(550, 140, 'platform_medium');
-        //platformFour.width = WIDTH/4;
-        platformFour.body.immovable = true;
-
-        return platform;
+        return platforms;
     }
 
     function createPlayer()
     {
+        
         player = game.add.sprite(0, 0, 'player_spritemap');
         game.physics.arcade.enable(player);
         player.body.bounce.y = 0.2;
@@ -245,10 +256,24 @@
         player.animations.add('walking_right', [4, 5, 6, 7], 8, true);
         player.animations.add('walking_left', [8, 9, 10, 11], 8, true);
 
-        player.direction = 1;
-        setStandingAnimation(player)
-
+        setPlayerX();
         return player;
+    }
+
+    function setPlayerX()
+    {
+        playerX = getRandomVal(100, (WIDTH - 100))
+        player.x = playerX;
+
+        if (playerX > WIDTH/2)
+        {
+            player.direction = -1;
+        }
+        else 
+        {
+            player.direction = 1;
+        }
+        setStandingAnimation(player);
     }
 
     /***
@@ -260,13 +285,13 @@
     {
         for (i = 0; i < amount; i++)
         {
-            enemy = enemies.create(getRandomVal(WIDTH), 0, 'enemy_spritemap')
+            enemy = enemies.create(getRandomVal(70, WIDTH), 0, 'enemy_spritemap')
             enemy.anchor.setTo(.5, 1);
             enemy.body.bounce.y = 0.2;
             enemy.body.gravity.y = 300;
             enemy.body.collideWorldBounds = true; 
             enemy.direction = chooseValueAtRandom(-1, 1);
-            enemy.speed = getRandomFloat(2, 0.5);
+            enemy.speed = getRandomFloat(0.9, 1.7);
             enemy.lastY = Math.round(enemy.body.y)
 
             enemy.body.setSize(22, 35, 0, 0);
@@ -372,7 +397,7 @@
         {
             jumpPressed++;
             playSound('jump');
-            player.body.velocity.y = -250;
+            player.body.velocity.y = JUMP_VELOCITY;
         }
     }
 
@@ -456,15 +481,15 @@
         return parent.children.length == 0;
     }
 
-    function getRandomVal(max, min)
+    function getRandomVal(min, max)
     {
         if (min == undefined)
-            min = 70;
+            min = 0;
 
         return Math.floor((Math.random() * max) + min);
     }
 
-    function getRandomFloat(max, min)
+    function getRandomFloat(min, max)
     {
         return (Math.random() * max) + min;
     }
@@ -554,7 +579,7 @@
         {
             enemy = enemies.children[i];
             speed = enemy.speed;
-            speed = 1;
+            //speed = 1;
 
             if (enemy.x >= 775)
                 enemy.direction = -1;

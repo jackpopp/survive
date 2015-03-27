@@ -1,3 +1,5 @@
+/*rgb(100, 50, 150)*/
+
 @font-face {
     font-family: 'upheaval_tt_brkregular';
     src: url('../fonts/upheavtt-webfont.eot');
@@ -20,6 +22,7 @@ body {
     position: relative;
     width: 800px;
     margin: 200px auto;
+    cursor: default;
 }
 
 .container {
@@ -44,6 +47,10 @@ body {
     color: white;
 }
 
+.play-again:hover {
+    color: rgb(100, 50, 150);
+}
+
 h1 {
     font-size: 20px;
     padding: 0;
@@ -65,12 +72,16 @@ h1 {
 }
 
 .high-score {
+    display: none;
+}
+
+.high-score-list {
       font-size: 25px;
       list-style: none;
       padding: 5px 0 0 0;
       margin: 0;
 }
 
-.high-score li {
+.high-score-list li {
     padding: 10px 0;
 }

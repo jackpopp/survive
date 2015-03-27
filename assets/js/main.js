@@ -4,16 +4,23 @@
     MAX_LEVEL = 7;
     WIDTH = 800;
     HEIGHT = 450;
-    LASER_DAMAGE = 1;
+    
     SCORE_INCREMENT = 100;
     JUMP_PRESS_MAX = 2;
     JUMP_VELOCITY = -220;
+
+    LASER_DAMAGE = 1;
     MAX_LASERS = 1;
 
+    ENEMY_HIT_ANIMATION_MS = 90;
+    ENEMY_HIT_ANIMATION_INTERVALS = 7;
+    ENEMY_DAMAGE_TINT = 0x990000;
+
+    PLAYER_START_X = 35;
     PLAYER_SPEED = 2;
 
     var currentLevel = 1;
-    var currentWave = 1;
+    var currentWave = 2;
     var currentScore = 0;
     var jumpPressed = 0;
     var muted = false;
@@ -42,11 +49,11 @@
 
     var platformData = [
         // top
-        //{x: 45, y: 120, sprite: 'platform_small'},
-        {x: 200, y: 135, sprite: 'platform_small'},
+        {x: 45, y: 120, sprite: 'platform_small'},
+        //{x: 200, y: 135, sprite: 'platform_small'},
         {x: 355, y: 115, sprite: 'platform_small'},
-        {x: 496, y: 125, sprite: 'platform_small'},
-        //{x: 657, y: 110, sprite: 'platform_small'},
+        //{x: 496, y: 125, sprite: 'platform_small'},
+        {x: 657, y: 110, sprite: 'platform_small'},
 
         // middle
         {x: 60, y: 245, sprite: 'platform_medium'},
@@ -281,9 +288,15 @@
         return player;
     }
 
+    /***
+    * Sets a random X for player and sets direction
+    * For now this is hardcoded.
+    ***/
+
     function setPlayerX()
     {
         playerX = getRandomVal(100, (WIDTH - 200))
+        playerX = PLAYER_START_X;
         player.x = playerX;
 
         if (playerX > WIDTH/2)
@@ -658,6 +671,10 @@
         game.over = true;
     }
 
+    /***
+    * shows the play again screen
+    ***/
+
     function showPlayAgainButton()
     {
         ms = 5000
@@ -669,6 +686,10 @@
         
     }
 
+    /***
+    * Callback when an enemy has been hit
+    ***/
+
     function enemyHitByLaser(enemy, laser)
     {
         damage = LASER_DAMAGE/currentWave;
@@ -677,12 +698,74 @@
         addLaserToBeDestroyed(laser);
 
         // bit of a hack here because of js float point being weird
-        if ( (enemy.health - 0.01) <= 0)
+        if ( (enemy.health - 0.01) <= 0  && ( ! enemyCannotBeHit(enemy)))
         {
             currentScore+= SCORE_INCREMENT*currentWave;
             enemy.destroy();
             incrementWavesAndLevels();
         }
+        else 
+        {
+            if (enemy.cannotBeHit === undefined)
+            {
+                if ( ! enemyCannotBeHit(enemy))
+                {
+                    enemyCannotBeHit(enemy, true)
+                    enemyHitAnimation(enemy, ENEMY_HIT_ANIMATION_MS, ENEMY_HIT_ANIMATION_INTERVALS)
+                }
+            }
+        }
+    }
+
+    /***
+    * Sets or returns value value of cannot be hit.
+    ***/
+
+    function enemyCannotBeHit(enemy, value)
+    {
+        if (value === undefined)
+            return enemy.cannotBeHit;
+
+        enemy.cannotBeHit = value;
+    }
+
+    function enemyCanBeHit(enemy, value)
+    {
+        if (enemy.hasOwnProperty(enemyCannotBeHit))
+        {
+            enemy.enemyCannotBeHit ? false : true
+        }
+
+        return true;
+    }
+
+    /***
+    * Runs an enemy hit animation using tints
+    ***/
+
+    function enemyHitAnimation(enemy, ms, intervals)
+    {
+        intervalTimeout = ms * intervals;
+        intervalAnimation = setInterval(function()
+        {
+            if (enemy.tint === ENEMY_DAMAGE_TINT)
+            {
+                enemy.tint = 0xFFFFFF;
+            }
+            else 
+            {
+                enemy.tint = ENEMY_DAMAGE_TINT; 
+            }
+        }, ENEMY_HIT_ANIMATION_MS);
+
+        (function(intervalAnimation, enemy){
+
+            setTimeout(function(){
+                clearInterval(intervalAnimation);
+                enemyCannotBeHit(enemy, false);
+            }, intervalTimeout);
+
+        })(intervalAnimation, enemy)
     }
 
     /***

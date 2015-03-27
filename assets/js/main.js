@@ -4,11 +4,11 @@
     MAX_LEVEL = 7;
     WIDTH = 800;
     HEIGHT = 450;
-    BULLET_DAMAGE = 1;
-    BULLET_TIMEOUT = 1000;
+    LASER_DAMAGE = 1;
     SCORE_INCREMENT = 100;
     JUMP_PRESS_MAX = 2;
     JUMP_VELOCITY = -220;
+    MAX_LASERS = 1;
 
     PLAYER_SPEED = 2;
 
@@ -34,9 +34,9 @@
 
     var foregroundObjects;
 
-    var bullet;
+    var lasers;
 
-    var canFireBullet = true;
+    var lasersToDestroy = [];
 
     var sounds = {};
 
@@ -74,7 +74,6 @@
         39: function(){ movePlayerForward(PLAYER_SPEED) },
         37: function(){ movePlayerBackward(PLAYER_SPEED) },
         //38: function(){ playerJump() },
-        32: function(){ fireBullet() }
     };
 
     function preload()
@@ -89,7 +88,7 @@
 
        game.load.spritesheet('player_spritemap', 'assets/img/player_spritemap.png', 22, 35);
        game.load.spritesheet('enemy_spritemap', 'assets/img/enemy_spritemap.png', 22, 35);
-       game.load.spritesheet('bullet_spritemap', 'assets/img/laser_spritemap.png', 23, 11);
+       game.load.spritesheet('laser_spritemap', 'assets/img/laser_spritemap.png', 23, 11);
 
        game.load.audio('blast', ['assets/audio/blast.wav']);
        game.load.audio('jump', ['assets/audio/jump.wav']);
@@ -132,7 +131,7 @@
         //new Player(game);
         player = createPlayer();
         foregroundObjects = createGroupWithObjects(foregroundObjects);
-        bullet = createBullet();
+        lasers = createLasers();
 
         enemies = game.add.group();
         enemies.enableBody = true;
@@ -144,8 +143,21 @@
         game.input.keyboard.onDownCallback = function()
         {
             // add jump timeout fix weird double jump problem
-            if ((game.input.keyboard.lastKey.keyCode == 38)  && (! game.over))
-                playerJump();
+            if (! game.over)
+            {
+                lastKeyCode = game.input.keyboard.lastKey.keyCode;
+
+                if (lastKeyCode === 38)
+                {
+                    playerJump();
+                }
+
+                if (lastKeyCode === 32)
+                {
+                    fireLaser();
+                }
+            }
+                
         }
 
         game.input.keyboard.onUpCallback = function()
@@ -164,8 +176,8 @@
         }*/
 
         moveEnemies();
-        moveBullet();
-        checkIfBulletHasHitEnemy();
+        moveLasers();
+        laserHasHitEnemy();
         checkIfEnemyHasHitPlayer();
         game.physics.arcade.collide(platforms, player);
 
@@ -176,6 +188,15 @@
         if (player.body.touching.down)
         {
             resetJumpPressed()
+        }
+
+        destroyLasers()
+    }
+
+    function destroyLasers()
+    {
+        for(i = 0; i < lasersToDestroy.length; i++){
+            lasersToDestroy[i].destroy()
         }
     }
 
@@ -286,7 +307,7 @@
         for (i = 0; i < amount; i++)
         {
             enemy = enemies.create(getRandomVal(70, WIDTH), 0, 'enemy_spritemap')
-            enemy.anchor.setTo(.5, 1);
+            //enemy.anchor.setTo(.5, 1);
             enemy.body.bounce.y = 0.2;
             enemy.body.gravity.y = 300;
             enemy.body.collideWorldBounds = true; 
@@ -304,31 +325,18 @@
             setDirectionAnimation(enemy);
         }
 
-        // make sure our bullet and foreground objects are in front of the enemies
-        game.world.bringToTop(bullet);
+        // make sure our laser and foreground objects are in front of the enemies
+        game.world.bringToTop(lasers);
         game.world.bringToTop(foregroundObjects);
         
     }
 
-    function createBullet()
+    function createLasers()
     {
-        bullet = game.add.sprite(0, 0, 'bullet_spritemap');
-        game.physics.arcade.enable(bullet);
-        bullet.body.setSize(11, 23, 0, 0);
-        bullet.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
-        bullet.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
-
-        //bullet.anchor.setTo(0.5, 1);
-        bullet.checkWorldBounds = true;
-
-        bullet.events.onOutOfBounds.add(function(bullet){ 
-            bullet.kill() 
-        }, this );
-
-        setBulletPosition()
-
-        bullet.kill();
-        return bullet;
+        lasers = game.add.group();
+        lasers.enableBody = true;
+        lasers.physicsBodyType = Phaser.Physics.ARCADE;
+        return lasers;
     }
 
     /***
@@ -500,74 +508,75 @@
         return Math.random() < 0.5 ? valueOne : valueTwo;
     }
 
-    function fireBullet()
+    function fireLaser()
     {
-        if ( ! bullet.alive && canFireBullet)
-        {
-            setBulletPosition();
-            setBulletDirection();
-            bullet.revive();
-            playSound('blast');
+        // check how many lasers are alive currently, if less than max amount then create
 
-            canFireBullet = false
-            setTimeout(function(){
-                canFireBullet = true;
-            }, BULLET_TIMEOUT)
-        }
+        laser = lasers.create(0, 0, 'laser_spritemap');
+        laser.body.setSize(11, 23, 0, 0);
+        laser.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
+        laser.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
+
+        laser.checkWorldBounds = true;
+        laser.events.onOutOfBounds.add(function(laser)
+        { 
+            addLaserToBeDestroyed(laser);
+        }, this );
+
+        setLaserDirection(laser);
+        setLaserPosition(laser);
+        setLaserAnimation(laser)
     }
 
-    /***
-    *
-    ***/
-
-    function moveBullet()
-    {
-        // use direct to know if we should increment or decrement
-        if (bullet.alive)
-        {
-            if (bullet.direction == 1)
-            {
-                bullet.x+=2;
-                bullet.animations.play('fire_right');
-            } 
-            else 
-            {
-                bullet.x-=2;
-                bullet.animations.play('fire_left');
-            }
-            
-        }
-    }
-
-    function setBulletPosition()
+    function setLaserPosition(laser)
     {
         // base on direction, do we place front of back of sprite
         if (player.direction == 1)
         {
-            bullet.body.x = player.body.x + 20;
+            laser.x = player.body.x + 20;
         }
         else {
-            bullet.body.x = player.body.x - 20;
+            laser.x = player.body.x - 20;
         }
-        bullet.body.y = player.body.y + 10;
+        laser.y = player.body.y + 10;
     }
 
-    /***
-    * Set the bullet direction based on the direction the player is moving
-    ***/
-
-    function setBulletDirection()
+    function setLaserDirection(laser)
     {
-        if (player.direction == -1)
+        laser.direction = player.direction;
+    }
+
+    function setLaserAnimation(laser)
+    {
+        if (laser.direction == 1)
         {
-            bullet.direction = -1;
-            //bullet.scale.x = -1;
-        }
+            laser.animations.play('fire_right');
+        } 
         else 
         {
-            bullet.direction = 1;
-            //bullet.scale.x = 1;
+            laser.animations.play('fire_left');
         }
+    }
+
+    function moveLasers()
+    {
+        for(i = 0; i < lasers.children.length; i++)
+        {
+            laser = lasers.children[i];
+            if (laser.direction == 1)
+            {
+                laser.x+=2;
+            } 
+            else 
+            {
+                laser.x-=2;
+            }
+        }
+    }
+
+    function addLaserToBeDestroyed(laser)
+    {
+        lasersToDestroy.push(laser)
     }
 
     /***
@@ -608,21 +617,19 @@
         }
     }
 
-    /***
-    *
-    ***/
-
-    function checkIfBulletHasHitEnemy()
+    function laserHasHitEnemy()
     {
         for (i = 0; i < enemies.children.length; i++)
         {
-            enemy = enemies.children[i]
-
-            game.physics.arcade.overlap(bullet, enemy, function(){
-                enemyHit(enemy, bullet)
-            });
+            enemy = enemies.children[i];
+            for(x = 0; x < lasers.children.length; x++)
+            {
+                laser = lasers.children[x];
+                game.physics.arcade.overlap(laser, enemy, function(){
+                    enemyHitByLaser(enemy, laser)
+                });
+            }   
         }
-
     }
 
     function checkIfEnemyHasHitPlayer()
@@ -662,30 +669,19 @@
         
     }
 
-    /***
-    * Callback when a players bullet hits the enemy
-    * Removes health or kills the enemies, inncrement score, waves and levels.
-    ***/
-
-    function enemyHit(enemy, bullet)
+    function enemyHitByLaser(enemy, laser)
     {
-        // take off health
-        // if health less than or equal to 0, destroy
+        damage = LASER_DAMAGE/currentWave;
+        enemy.health = (enemy.health - damage).toFixed(2);
+        playSound('explosion');
+        addLaserToBeDestroyed(laser);
 
-        if ( ! bullet.hasCollided )
+        // bit of a hack here because of js float point being weird
+        if ( (enemy.health - 0.01) <= 0)
         {
-            damage = BULLET_DAMAGE/currentWave;
-            enemy.health = (enemy.health - damage).toFixed(2);
-            playSound('explosion');
-            bullet.kill();
-
-            // bit of a hack here because of js float point being weird
-            if ( (enemy.health - 0.01) <= 0)
-            {
-                currentScore+= SCORE_INCREMENT*currentWave;
-                enemy.destroy();
-                incrementWavesAndLevels();
-            }
+            currentScore+= SCORE_INCREMENT*currentWave;
+            enemy.destroy();
+            incrementWavesAndLevels();
         }
     }
 

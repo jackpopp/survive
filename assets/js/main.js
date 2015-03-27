@@ -262,7 +262,7 @@
 
     function setPlayerX()
     {
-        playerX = getRandomVal(100, (WIDTH - 100))
+        playerX = getRandomVal(100, (WIDTH - 200))
         player.x = playerX;
 
         if (playerX > WIDTH/2)
@@ -810,8 +810,9 @@
         // play sound again
         resetWaves();
         renderGameInfo();
-        player.x = 20;
+        //player.x = 20;
         player.y = 0;
+        setPlayerX();
         player.revive();
         game.paused = false;
         game.over = true;

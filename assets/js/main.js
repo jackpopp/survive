@@ -18,9 +18,10 @@
 
     PLAYER_START_X = 35;
     PLAYER_SPEED = 2;
+    LASER_FIRE_TIMEOUT = 500;
 
     var currentLevel = 1;
-    var currentWave = 2;
+    var currentWave = 1;
     var currentScore = 0;
     var jumpPressed = 0;
     var muted = false;
@@ -44,6 +45,8 @@
     var lasers;
 
     var lasersToDestroy = [];
+
+    var canFireLaser = true;
 
     var sounds = {};
 
@@ -524,21 +527,32 @@
     function fireLaser()
     {
         // check how many lasers are alive currently, if less than max amount then create
+        if (canFireLaser)
+        {
+            canFireLaser = false;
 
-        laser = lasers.create(0, 0, 'laser_spritemap');
-        laser.body.setSize(11, 23, 0, 0);
-        laser.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
-        laser.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
+            setTimeout(function(){
+                canFireLaser = true;
+            }, LASER_FIRE_TIMEOUT);
 
-        laser.checkWorldBounds = true;
-        laser.events.onOutOfBounds.add(function(laser)
-        { 
-            addLaserToBeDestroyed(laser);
-        }, this );
 
-        setLaserDirection(laser);
-        setLaserPosition(laser);
-        setLaserAnimation(laser)
+            laser = lasers.create(0, 0, 'laser_spritemap');
+            laser.body.setSize(11, 23, 0, 0);
+            laser.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
+            laser.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
+
+            laser.checkWorldBounds = true;
+            laser.events.onOutOfBounds.add(function(laser)
+            { 
+                addLaserToBeDestroyed(laser);
+            }, this );
+
+            setLaserDirection(laser);
+            setLaserPosition(laser);
+            setLaserAnimation(laser)
+        }
+
+        
     }
 
     function setLaserPosition(laser)

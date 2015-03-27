@@ -815,7 +815,7 @@
         setPlayerX();
         player.revive();
         game.paused = false;
-        game.over = true;
+        game.over = false;
 
         //sounds['theme'].restart('', 0, volume);
         //resartThemeMusicIfEnded();

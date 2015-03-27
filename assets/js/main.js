@@ -834,10 +834,9 @@
 
     function removeChildren(group)
     {
-        for (i = 0; i < group.children.length; i++)
-        {
-            enemies.children[i].destroy()
-        }
+        for (var i = group.children.length - 1; i >= 0; i--) {
+            group.children[i].destroy()
+        };
     }
 
 })()

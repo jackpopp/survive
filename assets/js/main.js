@@ -291,7 +291,8 @@
             enemy.body.gravity.y = 300;
             enemy.body.collideWorldBounds = true; 
             enemy.direction = chooseValueAtRandom(-1, 1);
-            enemy.speed = getRandomFloat(0.9, 1.7);
+            enemy.speed = getRandomFloat(0.9, 1.2);
+            enemy.speed = 1
             enemy.lastY = Math.round(enemy.body.y)
 
             enemy.body.setSize(22, 35, 0, 0);
@@ -579,7 +580,6 @@
         {
             enemy = enemies.children[i];
             speed = enemy.speed;
-            //speed = 1;
 
             if (enemy.x >= 775)
                 enemy.direction = -1;

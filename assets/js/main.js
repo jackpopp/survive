@@ -1,7 +1,7 @@
 (function(){
 
     MAX_WAVE = 10;
-    MAX_LEVEL = 5;
+    MAX_LEVEL = 7;
     WIDTH = 800;
     HEIGHT = 450;
     BULLET_DAMAGE = 1;
@@ -62,7 +62,9 @@
     {
        game.load.image('background', 'assets/img/background_two.jpg', 0, 0);
        game.load.image('floor', 'assets/img/floor.png', 0, 0);
-       game.load.image('platform', 'assets/img/platform.png', 0, 0);
+       game.load.image('platform_large', 'assets/img/platform_large.png', 0, 0);
+       game.load.image('platform_medium', 'assets/img/platform_medium.png', 0, 0);
+       game.load.image('platform_small', 'assets/img/platform_small.png', 0, 0);
        game.load.image('rubbish_bin', 'assets/img/rubbish_bin.png', 0, 0);
        game.load.image('lampost', 'assets/img/lampost.png', 0, 0);
 
@@ -169,6 +171,141 @@
     }
 
     /***
+    * Creates background sprite
+    ***/
+
+    function createBackground()
+    {
+        background = game.add.sprite(0, 0, 'background');
+        background.height = HEIGHT;
+        background.width = WIDTH;
+
+        return background;
+    }
+
+    /***
+    * Creates objects in a group
+    ***/
+
+    function createGroupWithObjects(objects)
+    {
+        group = game.add.group();
+        group.enableBody = true;
+
+        for (i = 0; i < objects.length; i++)
+        {
+            bg = objects[i];
+            lampost = group.create(bg.x, bg.y, bg.sprite);
+            lampost.body.immovable = true;
+        }
+
+        return group;
+    }
+
+    function createPlatforms()
+    {
+        platform = game.add.group();
+        platform.enableBody = true;
+
+        floorPlatform = platform.create(0, 0, 'floor');
+        floorPlatform.y = HEIGHT - floorPlatform.height
+        floorPlatform.width = WIDTH;
+        floorPlatform.body.immovable = true;
+
+        platformOne = platform.create(50, 150, 'platform_medium');
+        //platformOne.width = WIDTH/4;
+        platformOne.body.immovable = true; 
+
+        platformTwo = platform.create(300, 250, 'platform_medium');
+        //platformTwo.width = WIDTH/4;
+        platformTwo.body.immovable = true;
+
+        platformThree = platform.create(500, 340, 'platform_medium');
+        //platformThree.width = WIDTH/4;
+        platformThree.body.immovable = true;
+
+        platformFour = platform.create(550, 140, 'platform_medium');
+        //platformFour.width = WIDTH/4;
+        platformFour.body.immovable = true;
+
+        return platform;
+    }
+
+    function createPlayer()
+    {
+        player = game.add.sprite(0, 0, 'player_spritemap');
+        game.physics.arcade.enable(player);
+        player.body.bounce.y = 0.2;
+        player.body.gravity.y = 300;
+        player.body.collideWorldBounds = true; 
+
+        player.body.setSize(22, 35, 0, 0);
+        player.animations.add('standing_left', [12, 13, 14, 15], 8, true);
+        player.animations.add('standing_right', [0, 1, 2, 3], 8, true);
+        player.animations.add('walking_right', [4, 5, 6, 7], 8, true);
+        player.animations.add('walking_left', [8, 9, 10, 11], 8, true);
+
+        player.direction = 1;
+        setStandingAnimation(player)
+
+        return player;
+    }
+
+    /***
+    * Creates all the enemies needed for a particular wave
+    * @return void
+    ***/
+
+    function createEnemies(amount)
+    {
+        for (i = 0; i < amount; i++)
+        {
+            enemy = enemies.create(getRandomVal(WIDTH), 0, 'enemy_spritemap')
+            enemy.anchor.setTo(.5, 1);
+            enemy.body.bounce.y = 0.2;
+            enemy.body.gravity.y = 300;
+            enemy.body.collideWorldBounds = true; 
+            enemy.direction = chooseValueAtRandom(-1, 1);
+            enemy.speed = getRandomFloat(2, 0.5);
+            enemy.lastY = Math.round(enemy.body.y)
+
+            enemy.body.setSize(22, 35, 0, 0);
+            enemy.animations.add('standing_left', [12, 13, 14, 15], 8, true);
+            enemy.animations.add('standing_right', [0, 1, 2, 3], 8, true);
+            enemy.animations.add('walking_right', [4, 5, 6, 7], 8, true);
+            enemy.animations.add('walking_left', [8, 9, 10, 11], 8, true);
+
+            setDirectionAnimation(enemy);
+        }
+
+        // make sure our bullet and foreground objects are in front of the enemies
+        game.world.bringToTop(bullet);
+        game.world.bringToTop(foregroundObjects);
+        
+    }
+
+    function createBullet()
+    {
+        bullet = game.add.sprite(0, 0, 'bullet_spritemap');
+        game.physics.arcade.enable(bullet);
+        bullet.body.setSize(11, 23, 0, 0);
+        bullet.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
+        bullet.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
+
+        //bullet.anchor.setTo(0.5, 1);
+        bullet.checkWorldBounds = true;
+
+        bullet.events.onOutOfBounds.add(function(bullet){ 
+            bullet.kill() 
+        }, this );
+
+        setBulletPosition()
+
+        bullet.kill();
+        return bullet;
+    }
+
+    /***
     * Checks the key down inputs and pushes into input states array
     ***/
 
@@ -237,87 +374,6 @@
             playSound('jump');
             player.body.velocity.y = -250;
         }
-    }
-
-    /***
-    * Creates background sprite
-    ***/
-
-    function createBackground()
-    {
-        background = game.add.sprite(0, 0, 'background');
-        background.height = HEIGHT;
-        background.width = WIDTH;
-
-        return background;
-    }
-
-    /***
-    * Creates objects in a group
-    ***/
-
-    function createGroupWithObjects(objects)
-    {
-        group = game.add.group();
-        group.enableBody = true;
-
-        for (i = 0; i < objects.length; i++)
-        {
-            bg = objects[i];
-            lampost = group.create(bg.x, bg.y, bg.sprite);
-            lampost.body.immovable = true;
-        }
-
-        return group;
-    }
-
-    function createPlatforms()
-    {
-        platform = game.add.group();
-        platform.enableBody = true;
-
-        floorPlatform = platform.create(0, 0, 'floor');
-        floorPlatform.y = HEIGHT - floorPlatform.height
-        floorPlatform.width = WIDTH;
-        floorPlatform.body.immovable = true;
-
-        platformOne = platform.create(50, 150, 'platform');
-        platformOne.width = WIDTH/4;
-        platformOne.body.immovable = true; 
-
-        platformTwo = platform.create(300, 250, 'platform');
-        platformTwo.width = WIDTH/4;
-        platformTwo.body.immovable = true;
-
-        platformThree = platform.create(500, 340, 'platform');
-        platformThree.width = WIDTH/4;
-        platformThree.body.immovable = true;
-
-        platformFour = platform.create(550, 140, 'platform');
-        platformFour.width = WIDTH/4;
-        platformFour.body.immovable = true;
-
-        return platform;
-    }
-
-    function createPlayer()
-    {
-        player = game.add.sprite(0, 0, 'player_spritemap');
-        game.physics.arcade.enable(player);
-        player.body.bounce.y = 0.2;
-        player.body.gravity.y = 300;
-        player.body.collideWorldBounds = true; 
-
-        player.body.setSize(22, 35, 0, 0);
-        player.animations.add('standing_left', [12, 13, 14, 15], 8, true);
-        player.animations.add('standing_right', [0, 1, 2, 3], 8, true);
-        player.animations.add('walking_right', [4, 5, 6, 7], 8, true);
-        player.animations.add('walking_left', [8, 9, 10, 11], 8, true);
-
-        player.direction = 1;
-        setStandingAnimation(player)
-
-        return player;
     }
 
     function setStandingAnimation(sprite)
@@ -400,39 +456,6 @@
         return parent.children.length == 0;
     }
 
-    /***
-    * Creates all the enemies needed for a particular wave
-    * @return void
-    ***/
-
-    function createEnemies(amount)
-    {
-        for (i = 0; i < amount; i++)
-        {
-            enemy = enemies.create(getRandomVal(WIDTH), 0, 'enemy_spritemap')
-            enemy.anchor.setTo(.5, 1);
-            enemy.body.bounce.y = 0.2;
-            enemy.body.gravity.y = 300;
-            enemy.body.collideWorldBounds = true; 
-            enemy.direction = chooseValueAtRandom(-1, 1);
-            enemy.speed = getRandomFloat(2, 0.5);
-            enemy.lastY = Math.round(enemy.body.y)
-
-            enemy.body.setSize(22, 35, 0, 0);
-            enemy.animations.add('standing_left', [12, 13, 14, 15], 8, true);
-            enemy.animations.add('standing_right', [0, 1, 2, 3], 8, true);
-            enemy.animations.add('walking_right', [4, 5, 6, 7], 8, true);
-            enemy.animations.add('walking_left', [8, 9, 10, 11], 8, true);
-
-            setDirectionAnimation(enemy);
-        }
-
-        // make sure our bullet and foreground objects are in front of the enemies
-        game.world.bringToTop(bullet);
-        game.world.bringToTop(foregroundObjects);
-        
-    }
-
     function getRandomVal(max, min)
     {
         if (min == undefined)
@@ -449,27 +472,6 @@
     function chooseValueAtRandom(valueOne, valueTwo)
     {
         return Math.random() < 0.5 ? valueOne : valueTwo;
-    }
-
-    function createBullet()
-    {
-        bullet = game.add.sprite(0, 0, 'bullet_spritemap');
-        game.physics.arcade.enable(bullet);
-        bullet.body.setSize(11, 23, 0, 0);
-        bullet.animations.add('fire_right', [0, 1, 2, 3, 4, 5], 6, true);
-        bullet.animations.add('fire_left', [6, 7, 8, 9, 10, 11], 6, true);
-
-        //bullet.anchor.setTo(0.5, 1);
-        bullet.checkWorldBounds = true;
-
-        bullet.events.onOutOfBounds.add(function(bullet){ 
-            bullet.kill() 
-        }, this );
-
-        setBulletPosition()
-
-        bullet.kill();
-        return bullet;
     }
 
     function fireBullet()
@@ -787,6 +789,7 @@
         player.y = 0;
         player.revive();
         game.paused = false;
+        game.over = true;
 
         //sounds['theme'].restart('', 0, volume);
         //resartThemeMusicIfEnded();

@@ -17,7 +17,7 @@
     var jumpPressed = 0;
     var muted = true;
 
-    var game = new Phaser.Game(800, 450, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
+    var game = new Phaser.Game(WIDTH, HEIGHT, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
 
     var background;
 
@@ -36,6 +36,18 @@
     var canFireBullet = true;
 
     var sounds = {};
+
+    var backgroundObjects = [
+        {x: 30, y: 350, sprite: 'lampost'},
+        {x: 380, y: 350, sprite: 'lampost'},
+        {x: 730, y: 350, sprite: 'lampost'},
+    ]
+
+    var foregroundObjects = [
+        {x: 50, y: 405, sprite: 'rubbish_bin'},
+        {x: 400, y: 405, sprite: 'rubbish_bin'},
+        {x: 750, y: 405, sprite: 'rubbish_bin'},
+    ]
 
     var inputStates = {
         39: function(){ movePlayerForward(PLAYER_SPEED) },
@@ -68,6 +80,7 @@
 
     function create()
     {
+        setCanvasSize();
 
         game.paused = true;
 
@@ -91,9 +104,10 @@
     
         background = createBackground();
         platforms = createPlatforms();
-        backgroundObjects = createBackgroundObjects()
+        backgroundObjects = createGroupWithObjects(backgroundObjects);
+        //new Player(game);
         player = createPlayer();
-        foregroundObjects = createForegroundObjects();
+        foregroundObjects = createGroupWithObjects(foregroundObjects);
         bullet = createBullet();
 
         enemies = game.add.group();
@@ -141,6 +155,20 @@
         }
     }
 
+    /***
+    * Sets the canvas size to fullscreen size of the windows up to a max
+    * of the variable WIDTH and HEIGHT
+    ***/
+
+    function setCanvasSize()
+    {
+
+    }
+
+    /***
+    * Checks the key down inputs and pushes into input states array
+    ***/
+
     function checkInput()
     {
         for (i = 0; i < game.input.keyboard._keys.length; i++)
@@ -151,11 +179,20 @@
         }
     }
 
+    /***
+    * Gets the keycode from a key object
+    ***/
+
     function getKeyCodeFromKey(key)
     {
         if (key != undefined && key.hasOwnProperty('keyCode') && key.isDown)
             return key.keyCode
     }
+
+    /***
+    * Sets direction of player based on speed provided and 
+    * sets the direction of the player sprite
+    ***/
 
     function movePlayerForward(speed)
     {
@@ -164,12 +201,23 @@
         setDirectionAnimation(player)
     }
 
+    /***
+    * Sets direction of player based on speed provided and 
+    * sets the direction of the player sprite
+    ***/
+
     function movePlayerBackward(speed)
     {
         player.x -= speed;
         player.direction = -1;
         setDirectionAnimation(player)
     }
+
+    /***
+    * Allows player to jump and plays jump sound
+    * Player can jump intull jumpPressed has reached
+    * JUMP_PRESS_MAX
+    ***/
 
     function playerJump()
     {
@@ -182,9 +230,11 @@
             playSound('jump');
             player.body.velocity.y = -250;
         }
-        
-        //playSound('jump');
     }
+
+    /***
+    * Creates background sprite
+    ***/
 
     function createBackground()
     {
@@ -195,36 +245,21 @@
         return background;
     }
 
-    function createBackgroundObjects()
+    /***
+    * Creates objects in a group
+    ***/
+
+    function createGroupWithObjects(objects)
     {
         group = game.add.group();
         group.enableBody = true;
 
-        lampost = group.create(30, 350, 'lampost');
-        lampost.body.immovable = true;
-
-        lampost = group.create(380, 350, 'lampost');
-        lampost.body.immovable = true;
-
-        lampost = group.create(730, 350, 'lampost');
-        lampost.body.immovable = true;
-
-        return group;
-    }
-
-    function createForegroundObjects()
-    {
-        group = game.add.group();
-        group.enableBody = true;
-
-        bin = group.create(50, 405, 'rubbish_bin');
-        bin.body.immovable = true;
-
-        bin = group.create(400, 405, 'rubbish_bin');
-        bin.body.immovable = true;
-
-        bin = group.create(750, 405, 'rubbish_bin');
-        bin.body.immovable = true;
+        for (i = 0; i < objects.length; i++)
+        {
+            bg = objects[i];
+            lampost = group.create(bg.x, bg.y, bg.sprite);
+            lampost.body.immovable = true;
+        }
 
         return group;
     }
@@ -262,7 +297,6 @@
     {
         player = game.add.sprite(0, 0, 'player_spritemap');
         game.physics.arcade.enable(player);
-        //player.anchor.setTo(.5, 1);
         player.body.bounce.y = 0.2;
         player.body.gravity.y = 300;
         player.body.collideWorldBounds = true; 

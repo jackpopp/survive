@@ -18,7 +18,7 @@
 
     PLAYER_START_X = 35;
     PLAYER_SPEED = 2;
-    LASER_FIRE_TIMEOUT = 500;
+    LASER_FIRE_TIMEOUT = 750;
 
     var currentLevel = 1;
     var currentWave = 1;
@@ -550,6 +550,7 @@
             setLaserDirection(laser);
             setLaserPosition(laser);
             setLaserAnimation(laser)
+            playSound('blast');
         }
 
         
